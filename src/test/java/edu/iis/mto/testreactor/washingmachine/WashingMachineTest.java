@@ -23,16 +23,9 @@ class WashingMachineTest {
 
     //input
 	private final Material irrelevant = Material.COTTON;
-	private final Material relevant = Material.JEANS;
-
 	private final double properWeightKg = 7d;
-	private final double improperWeightKg = 10d;
-	private final double negativeWeightKg = -2d;
-	private final double zeroWeightKg = 0d;
-
 	private final Program staticProgram = Program.LONG;
-	private final Program nonstaticProgram = Program.AUTODETECT;
-
+	private final int ZERO = 0;
 
     @BeforeEach
     void setUp() throws Exception {
@@ -50,6 +43,7 @@ class WashingMachineTest {
 
 	@Test
 	void checkIfBatchIsImproperAndProgramIsStatic() {
+		final Material relevant = Material.JEANS;
 		LaundryBatch laundryBatch = batch(relevant, properWeightKg);
 		ProgramConfiguration programConfiguration = configWithSpin(staticProgram);
 
@@ -59,6 +53,7 @@ class WashingMachineTest {
 
 	@Test
 	void checkIfBatchIsProperAndProgramIsNonStatic(){
+		final Program nonstaticProgram = Program.AUTODETECT;
 		LaundryBatch laundryBatch = batch(irrelevant, properWeightKg);
 		ProgramConfiguration programConfiguration = configWithSpin(nonstaticProgram);
 
@@ -97,7 +92,53 @@ class WashingMachineTest {
         callOrder.verify(engine).spin();
     }
 
-    private LaundryBatch batch(Material material, double weight){
+	@Test
+	void checkIfEngineAndPumpAreCalledWithProperBatchAndWithoutProgramConfig() throws WaterPumpException, EngineException {
+		LaundryBatch laundryBatch = batch(irrelevant, properWeightKg);
+		ProgramConfiguration programConfiguration = ProgramConfiguration.builder().
+														withProgram(staticProgram).
+														withSpin(false).build();
+		washingMashine.start(laundryBatch, null);
+
+		Mockito.verify(waterPump, Mockito.times(ZERO)).pour(properWeightKg);
+		Mockito.verify(engine, Mockito.times(ZERO)).runWashing(staticProgram.getTimeInMinutes());
+		Mockito.verify(waterPump, Mockito.times(ZERO)).release();
+		Mockito.verify(engine, Mockito.times(ZERO)).spin();
+	}
+
+	@Test
+	void checkIfSpinIsCalledWithProperBatchAndProgramWithoutSpin() throws WaterPumpException, EngineException {
+		LaundryBatch laundryBatch = batch(irrelevant, properWeightKg);
+		ProgramConfiguration programConfiguration = ProgramConfiguration.builder().
+														withProgram(staticProgram).
+														withSpin(false).build();
+
+		washingMashine.start(laundryBatch, programConfiguration);
+		Mockito.verify(waterPump).pour(properWeightKg);
+		Mockito.verify(engine).runWashing(staticProgram.getTimeInMinutes());
+		Mockito.verify(waterPump).release();
+		Mockito.verify(engine, Mockito.times(ZERO)).spin();
+	}
+
+	@Test
+	void checkIfBatchIsNull() {
+		ProgramConfiguration programConfiguration = configWithSpin(staticProgram);
+		Assertions.assertThrows(NullPointerException.class, () -> washingMashine.start(null, programConfiguration));
+	}
+
+	@Test
+	void checkIfProgramConfigIsNull(){
+		LaundryBatch laundryBatch = batch(irrelevant, properWeightKg);
+		LaundryStatus status = washingMashine.start(laundryBatch, null);
+		Assertions.assertEquals(error(ErrorCode.UNKNOWN_ERROR), status);
+	}
+
+	@Test
+	void checkIfBatchAndProgramConfigAreNull() {
+		Assertions.assertThrows(NullPointerException.class, () -> washingMashine.start(null, null));
+	}
+
+	private LaundryBatch batch(Material material, double weight){
         return LaundryBatch.builder().
                 withMaterialType(material).
                 withWeightKg(weight).
