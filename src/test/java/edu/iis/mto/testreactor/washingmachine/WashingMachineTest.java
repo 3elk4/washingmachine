@@ -48,7 +48,43 @@ class WashingMachineTest {
         Assertions.assertEquals(success(staticProgram), status);
     }
 
-    @Test
+	@Test
+	void checkIfBatchIsImproperAndProgramIsStatic() {
+		LaundryBatch laundryBatch = batch(relevant, properWeightKg);
+		ProgramConfiguration programConfiguration = configWithSpin(staticProgram);
+
+		LaundryStatus status = washingMashine.start(laundryBatch, programConfiguration);
+		Assertions.assertEquals(error(ErrorCode.TOO_HEAVY), status);
+	}
+
+	@Test
+	void checkIfBatchIsProperAndProgramIsNonStatic(){
+		LaundryBatch laundryBatch = batch(irrelevant, properWeightKg);
+		ProgramConfiguration programConfiguration = configWithSpin(nonstaticProgram);
+
+		LaundryStatus status = washingMashine.start(laundryBatch, programConfiguration);
+		Assertions.assertEquals(error(ErrorCode.UNKNOWN_ERROR), status);
+	}
+
+//	@Test //??
+//	void checkIfWeightIsNegativeAndProgramIsStatic() {
+//		LaundryBatch laundryBatch = batch(irrelevant, negativeWeightKg);
+//		ProgramConfiguration programConfiguration = configWithSpin(staticProgram);
+//
+//		LaundryStatus status = washingMashine.start(laundryBatch, programConfiguration);
+//		Assertions.assertEquals(success(staticProgram), status);
+//	}
+//
+//	@Test //??
+//	void checkIfWeightIsZeroAndProgramIsStatic() {
+//		LaundryBatch laundryBatch = batch(irrelevant, zeroWeightKg);
+//		ProgramConfiguration programConfiguration = configWithSpin(staticProgram);
+//
+//		LaundryStatus status = washingMashine.start(laundryBatch, programConfiguration);
+//		Assertions.assertEquals(success(staticProgram), status);
+//	}
+
+	@Test
     void checkIfEngineAndPumpAreCalledWithProperBatchAndStaticProgram() throws EngineException, WaterPumpException {
         LaundryBatch laundryBatch = batch(irrelevant, properWeightKg);
         ProgramConfiguration programConfiguration = configWithSpin(staticProgram);
@@ -83,10 +119,10 @@ class WashingMachineTest {
                 build();
     }
 
-    private LaundryStatus error(ErrorCode code, Program program) {
+    private LaundryStatus error(ErrorCode code) {
         return LaundryStatus.builder()
                 .withResult(Result.FAILURE)
-                .withRunnedProgram(program)
+                .withRunnedProgram(null)
                 .withErrorCode(code)
                 .build();
     }
