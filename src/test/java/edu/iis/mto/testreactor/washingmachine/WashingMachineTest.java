@@ -56,28 +56,24 @@ class WashingMachineTest {
 		final Program nonstaticProgram = Program.AUTODETECT;
 		LaundryBatch laundryBatch = batch(irrelevant, properWeightKg);
 		ProgramConfiguration programConfiguration = configWithSpin(nonstaticProgram);
+		Percentage half = new Percentage(50.0d);
+		Mockito.when(dirtDetector.detectDirtDegree(laundryBatch)).thenReturn(half);
 
 		LaundryStatus status = washingMashine.start(laundryBatch, programConfiguration);
-		Assertions.assertEquals(error(ErrorCode.UNKNOWN_ERROR), status);
+		Assertions.assertEquals(success(Program.MEDIUM), status);
 	}
 
-//	@Test //??
-//	void checkIfWeightIsNegativeAndProgramIsStatic() {
-//		LaundryBatch laundryBatch = batch(irrelevant, negativeWeightKg);
-//		ProgramConfiguration programConfiguration = configWithSpin(staticProgram);
-//
-//		LaundryStatus status = washingMashine.start(laundryBatch, programConfiguration);
-//		Assertions.assertEquals(success(staticProgram), status);
-//	}
-//
-//	@Test //??
-//	void checkIfWeightIsZeroAndProgramIsStatic() {
-//		LaundryBatch laundryBatch = batch(irrelevant, zeroWeightKg);
-//		ProgramConfiguration programConfiguration = configWithSpin(staticProgram);
-//
-//		LaundryStatus status = washingMashine.start(laundryBatch, programConfiguration);
-//		Assertions.assertEquals(success(staticProgram), status);
-//	}
+	@Test
+	void checkIfProgramIsNonStaticAndDirtDetectionOnProperBatch(){
+		final Program nonstaticProgram = Program.AUTODETECT;
+		LaundryBatch laundryBatch = batch(irrelevant, properWeightKg);
+		ProgramConfiguration programConfiguration = configWithSpin(nonstaticProgram);
+		Percentage half = new Percentage(50.0d);
+		Mockito.when(dirtDetector.detectDirtDegree(laundryBatch)).thenReturn(half);
+
+		washingMashine.start(laundryBatch, programConfiguration);
+		Mockito.verify(dirtDetector).detectDirtDegree(laundryBatch);
+	}
 
 	@Test
     void checkIfEngineAndPumpAreCalledWithProperBatchAndStaticProgram() throws EngineException, WaterPumpException {

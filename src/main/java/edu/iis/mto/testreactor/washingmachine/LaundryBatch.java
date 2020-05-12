@@ -30,13 +30,14 @@ public class LaundryBatch {
     }
 
     public static final class Builder {
-
+        private static final double ZERO = 0.0;
         private double weightKg;
         private Material materialType;
 
         private Builder() {}
 
         public Builder withWeightKg(double weightKg) {
+            if(weightKg <= ZERO) throw new IllegalArgumentException();
             this.weightKg = weightKg;
             return this;
         }
